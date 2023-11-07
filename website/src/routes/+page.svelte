@@ -9,6 +9,7 @@
   import Bars from '$lib/components/sections/bars.svelte'
   import Graph from '$lib/components/sections/graph.svelte'
   import AauLogo from '$lib/components/aau-logo.svelte'
+  import Section from '$lib/components/sections/section.svelte'
 
   const log = debug('app:main')
 
@@ -84,32 +85,35 @@
 </header>
 
 <div class="container">
-  <div class="flex gap-4">
+  <div class="flex gap-8">
     <div class="basis-52 shrink-0 grow-0">
       <Coala_3d header="Target pitch, yaw" />
       <Coala_3d header="Measured pitch, yaw" />
-      <div>
-        Network status:
-        {#if socketConnected}
-          <span class="text-x-green">Connected</span>
-        {:else}
-          <span class="text-x-red">
-            Disconnected
-            <span class="text-sm">(reconnecting...)</span>
-          </span>
-        {/if}
-      </div>
-      <div>
-        Gamepad status:
-        {#if gamepadIndex !== null}
-          <span class="text-x-green">Connected</span>
-        {:else}
-          <span class="text-x-red">
-            Disconnected
-            <span class="text-sm"> (try pressing something on the gamepad) </span>
-          </span>
-        {/if}
-      </div>
+      <Section>
+        <span slot="header">Connectivity</span>
+        <div class="my-2">
+          Network:
+          {#if socketConnected}
+            <span class="text-x-green">✓&nbsp;Connected</span>
+          {:else}
+            <span class="text-x-red">
+              🞫&nbsp;Disconnected
+              <span class="text-sm">(reconnecting...)</span>
+            </span>
+          {/if}
+        </div>
+        <div>
+          Gamepad:
+          {#if gamepadIndex !== null}
+            <span class="text-x-green">✓&nbsp;Connected</span>
+          {:else}
+            <span class="text-x-red">
+              🞫&nbsp;Disconnected
+              <span class="text-sm"> (try pressing something on the gamepad) </span>
+            </span>
+          {/if}
+        </div>
+      </Section>
     </div>
     <div class="basis-52 shrink-0 grow-0">
       <Bars header="Heave: target, measured" barValues={[0.2, 0.5]} />
@@ -129,12 +133,14 @@
 <footer class="bg-x-blue">
   <div class="container">
     <div class="flex py-2 items-center gap-4 text-x-white font-medium">
-      <div class="h-8 flex gap-4">
+      <div class="h-8 shrink-0 flex gap-4">
         <SubcLogo />
         <AauLogo />
       </div>
-      <div class="ml-auto font-normal">
-        Made by Norbert Pap, Tamas Halasi and Tue Jensen in cooperation with SubC
+      <div class="ml-auto font-normal text-sm leading-tight">
+        Made by Norbert Pap, Tamas Halasi and Tue Jensen as part of their 5th semester project
+        studying Applied Industrial Electronics BSc at Aalborg University, Esbjerg, in cooperation
+        with SubC.
       </div>
     </div>
   </div>

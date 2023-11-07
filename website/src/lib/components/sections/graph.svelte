@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Chart, registerables, type ChartDataset } from 'chart.js'
+  import Section from './section.svelte'
 
   export let header = 'Chart'
   export let subtitle = '(m / s)'
@@ -46,7 +47,7 @@
   const datasetDefaults: Partial<ChartDataset<'scatter'>> = {
     showLine: true,
     borderCapStyle: 'round',
-    pointRadius: 0,
+    pointRadius: 0
   }
 
   $: chartjsDatasets = datasets.map((dataset) => ({
@@ -68,7 +69,7 @@
         responsive: true,
         plugins: {
           legend: {
-            display: false 
+            display: false
           },
           tooltip: {
             enabled: false
@@ -77,24 +78,22 @@
       }
     })
   }
-
 </script>
 
-<h2 class="mt-8 mb-2">
-  <div class="flex items-baseline">
+<Section>
+  <div slot="header" class="flex items-baseline">
     <div>
       {header}
-      <span class="text-gray-500 text-sm">{subtitle}</span>
+      <span class="text-gray-500 text-sm font-normal">{subtitle}</span>
     </div>
-    <div class="ml-auto flex text-sm gap-4">
+    <div class="ml-auto flex text-sm gap-4 font-normal">
       {#each datasets as dataset}
-      <div>
-        {dataset.label}
-        <span style="color: {dataset.borderColor}"> ● </span>
-      </div>
+        <div>
+          {dataset.label}
+          <span style="color: {dataset.borderColor}"> ● </span>
+        </div>
       {/each}
     </div>
   </div>
-</h2>
-
-<canvas bind:this={canvas}></canvas>
+  <canvas bind:this={canvas} />
+</Section>

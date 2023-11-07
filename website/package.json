@@ -33,9 +33,12 @@
 	"type": "module",
 	"dependencies": {
 		"@types/debug": "^4.1.10",
+		"@types/three": "^0.158.2",
 		"chart.js": "^4.4.0",
 		"debug": "^4.3.4",
 		"rosnodejs": "^3.1.0",
+		"three": "^0.158.0",
+		"three-stl-loader": "^1.0.6",
 		"ws": "^8.14.2"
 	}
 }
