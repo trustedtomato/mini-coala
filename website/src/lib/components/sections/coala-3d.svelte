@@ -34,7 +34,7 @@
     )
 
     // zoom out to see the whole model
-    camera.position.z = 3
+    camera.position.z = 6.5
 
     // --- scene ---
 
@@ -48,21 +48,25 @@
     const pointLight = new THREE.PointLight(0xffffff, 15)
     camera.add(pointLight)
     scene.add(camera)
-
     // --- model ---
 
     const group = new THREE.Group()
 
-    new MTLLoader().load('male02.mtl', function (materials) {
+    new MTLLoader().load('COALA.mtl', function (materials) {
       materials.preload()
 
       new OBJLoader().setMaterials(materials).load(
-        'male02.obj',
+        'COALA.obj',
         function (object) {
-          // move the model to the center of the scene
-          object.position.y = -0.95
-          // scale the model down
+          // Scale the model down and rotate to make it upright
           object.scale.setScalar(0.01)
+          object.rotateX(Math.PI / 2)
+          const boundingBox = new THREE.Box3()
+          boundingBox.setFromObject(object)
+          const center = new THREE.Vector3()
+          boundingBox.getCenter(center)
+          // Use the center of the bounding box to move the center of the object to (0, 0, 0)
+          object.position.set(-center.x, -center.y, -center.z)
           group.add(object)
           scene.add(group)
         },
@@ -83,7 +87,7 @@
     renderer.setSize(container.clientWidth, container.clientHeight)
     container.appendChild(renderer.domElement)
 
-    // --- controls ---
+    //--- controls ---
 
     if (import.meta.env.DEV) {
       const controls = new OrbitControls(camera, renderer.domElement)
