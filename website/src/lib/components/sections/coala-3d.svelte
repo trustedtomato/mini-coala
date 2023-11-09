@@ -3,9 +3,14 @@
   import Section from './section.svelte'
   import * as THREE from 'three'
   import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
-  import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+  import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
   import debug from 'debug'
+
+  const loader = new GLTFLoader()
+  const dracoLoader = new DRACOLoader()
+  loader.setDRACOLoader(dracoLoader)
 
   const log = debug('app:coala-3d')
 
@@ -52,14 +57,22 @@
 
     const group = new THREE.Group()
 
-    new MTLLoader().load('COALA.mtl', function (materials) {
-      materials.preload()
-
-      new OBJLoader().setMaterials(materials).load(
-        'COALA-smaller.obj',
-        function (object) {
-          // Scale the model down and rotate to make it upright
-          object.scale.setScalar(0.01)
+    loader.load(
+      'simplified/COALA.glb',
+      function (object) {
+        const obj = object.scene.children[0]
+        obj.scale.setScalar(0.01)
+        obj.rotateX(Math.PI / 2)
+        const boundingBox = new THREE.Box3()
+        boundingBox.setFromObject(obj)
+        const center = new THREE.Vector3()
+        boundingBox.getCenter(center)
+        // Use the center of the bounding box to move the center of the object to (0, 0, 0)
+        obj.position.set(-center.x, -center.y, -center.z)
+        group.add(obj)
+        scene.add(group)
+        /*
+        object.scale.setScalar(0.01)
           object.rotateX(Math.PI / 2)
           const boundingBox = new THREE.Box3()
           boundingBox.setFromObject(object)
@@ -69,16 +82,16 @@
           object.position.set(-center.x, -center.y, -center.z)
           group.add(object)
           scene.add(group)
-        },
-        // on progress
-        (xhr) => {
-          if (xhr.lengthComputable) {
-            const percentComplete = (xhr.loaded / xhr.total) * 100
-            log(percentComplete.toFixed(2) + '% downloaded')
-          }
+        */
+      },
+      // on progress
+      (xhr) => {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100
+          log(percentComplete.toFixed(2) + '% downloaded')
         }
-      )
-    })
+      }
+    )
 
     // --- renderer ---
 
