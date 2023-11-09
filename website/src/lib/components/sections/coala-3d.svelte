@@ -56,7 +56,7 @@
       materials.preload()
 
       new OBJLoader().setMaterials(materials).load(
-        'COALA.obj',
+        'COALA-smaller.obj',
         function (object) {
           // Scale the model down and rotate to make it upright
           object.scale.setScalar(0.01)
