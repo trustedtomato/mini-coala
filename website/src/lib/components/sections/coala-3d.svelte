@@ -10,6 +10,7 @@
 
   const loader = new GLTFLoader()
   const dracoLoader = new DRACOLoader()
+  dracoLoader.setDecoderPath('draco/')
   loader.setDRACOLoader(dracoLoader)
 
   const log = debug('app:coala-3d')
@@ -39,7 +40,7 @@
     )
 
     // zoom out to see the whole model
-    camera.position.z = 6.5
+    camera.position.z = 6
 
     // --- scene ---
 
@@ -47,7 +48,7 @@
     scene.background = new THREE.Color(0xe2e7ed)
 
     // AmbientLight adds a constant amount of light to every object from all directions
-    const ambientLight = new THREE.AmbientLight(0xffffff)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1)
     scene.add(ambientLight)
 
     const pointLight = new THREE.PointLight(0xffffff, 15)
@@ -58,9 +59,14 @@
     const group = new THREE.Group()
 
     loader.load(
-      'simplified/COALA.glb',
+      'simplified/COALA-good-colors.glb',
       function (object) {
-        const obj = object.scene.children[0]
+        const obj = object.scene
+        for (const child of obj.children) {
+          if (child instanceof THREE.Mesh) {
+            child.material.metalness = 0
+          }
+        }
         obj.scale.setScalar(0.01)
         obj.rotateX(Math.PI / 2)
         const boundingBox = new THREE.Box3()
@@ -96,6 +102,8 @@
     // --- renderer ---
 
     const renderer = new THREE.WebGLRenderer({ antialias: true })
+    // use gamma output
+    renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(container.clientWidth, container.clientHeight)
     container.appendChild(renderer.domElement)
