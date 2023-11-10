@@ -2,16 +2,13 @@
   import { onMount } from 'svelte'
   import Section from './section.svelte'
   import * as THREE from 'three'
-  import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
   import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-  import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
+  import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module'
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
   import debug from 'debug'
 
   const loader = new GLTFLoader()
-  const dracoLoader = new DRACOLoader()
-  dracoLoader.setDecoderPath('draco/')
-  loader.setDRACOLoader(dracoLoader)
+  loader.setMeshoptDecoder(MeshoptDecoder)
 
   const log = debug('app:coala-3d')
 
@@ -59,14 +56,9 @@
     const group = new THREE.Group()
 
     loader.load(
-      'simplified/COALA-good-colors-simplified.glb',
+      'simplified/COALA5.glb',
       function (object) {
         const obj = object.scene
-        for (const child of obj.children) {
-          if (child instanceof THREE.Mesh) {
-            child.material.metalness = 0
-          }
-        }
         obj.scale.setScalar(0.01)
         obj.rotateX(Math.PI / 2)
         const boundingBox = new THREE.Box3()

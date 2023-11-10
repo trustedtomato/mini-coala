@@ -3,6 +3,7 @@
 ## Getting ethernet to work
 
 ### Enable ethernet
+
 `/boot/config.txt`\
 dtoverlay=dwc2,dr_mode=host
 
@@ -10,6 +11,7 @@ dtoverlay=dwc2,dr_mode=host
 module-load=dwc2,g_ether
 
 ### Have static IP on the same subnet
+
 On raspberry eth0: 192.168.1.10\
  255.255.255.0
 
@@ -17,17 +19,30 @@ On laptop ethernet: 192.168.1.50\
  255.255.255.0
 
 ## Developing website server & client
+
 Go to the `website` directory.
 
 ### Setup
+
 Run `npm install` to install all dependencies.
 
 ### Development
+
 - Make sure `roscore` is running.
 - Run `node ws-server.js` to start the WebSocket server.
 - Run `npm run dev` to start the development server.
 
+### Converting a SolidWorks file to a GLB for Three.js
+
+1. Export obj and mtl files using CAD Assistant
+2. Import the obj and mtl files using [3dviewer.net](https://3dviewer.net/)
+3. Export GLB from [3dviewer.net](https://3dviewer.net/)
+4. Run `npx @gltf-transform/cli unlit [input-file] [output-file]` on the GLB file
+5. Run `npx @gltf-transform/cli optimize --compress meshopt [input-file] [output-file]` on the GLB file
+6. Repeat the previous step until the size reaches a desirable value
+
 ## Roadmap
+
 - [ ] Measure thruster force
 - [ ] Create node (publisher) for the barometer
 - [ ] Create node (publisher) for the IMU
