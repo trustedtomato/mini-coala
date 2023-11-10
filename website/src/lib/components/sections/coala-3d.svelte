@@ -48,7 +48,7 @@
     scene.background = new THREE.Color(0xe2e7ed)
 
     // AmbientLight adds a constant amount of light to every object from all directions
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6)
     scene.add(ambientLight)
 
     const pointLight = new THREE.PointLight(0xffffff, 15)
@@ -59,7 +59,7 @@
     const group = new THREE.Group()
 
     loader.load(
-      'simplified/COALA-good-colors.glb',
+      'simplified/COALA-good-colors-simplified.glb',
       function (object) {
         const obj = object.scene
         for (const child of obj.children) {
