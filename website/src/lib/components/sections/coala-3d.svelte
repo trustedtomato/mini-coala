@@ -60,7 +60,6 @@
       function (object) {
         const obj = object.scene
         obj.scale.setScalar(0.01)
-        obj.rotateX(Math.PI / 2)
         const boundingBox = new THREE.Box3()
         boundingBox.setFromObject(obj)
         const center = new THREE.Vector3()
@@ -69,18 +68,6 @@
         obj.position.set(-center.x, -center.y, -center.z)
         group.add(obj)
         scene.add(group)
-        /*
-        object.scale.setScalar(0.01)
-          object.rotateX(Math.PI / 2)
-          const boundingBox = new THREE.Box3()
-          boundingBox.setFromObject(object)
-          const center = new THREE.Vector3()
-          boundingBox.getCenter(center)
-          // Use the center of the bounding box to move the center of the object to (0, 0, 0)
-          object.position.set(-center.x, -center.y, -center.z)
-          group.add(object)
-          scene.add(group)
-        */
       },
       // on progress
       (xhr) => {
@@ -102,9 +89,11 @@
 
     //--- controls ---
 
+    /*
     if (import.meta.env.DEV) {
       const controls = new OrbitControls(camera, renderer.domElement)
     }
+    */
 
     // --- resize ---
 
@@ -123,8 +112,8 @@
       requestAnimationFrame(animate)
       if (group) {
         group.rotation.y = yaw
-        group.rotation.x = pitch
-        group.rotation.z = roll
+        group.rotation.x = pitch + Math.PI / 2
+        group.rotation.z = roll - Math.PI / 2
       }
       renderer.render(scene, camera)
     }

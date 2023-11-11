@@ -1,10 +1,15 @@
 <script lang="ts">
   import { Chart, registerables, type ChartDataset } from 'chart.js'
   import Section from './section.svelte'
+  import { onMount } from 'svelte'
 
   export let header = 'Chart'
-  export let subtitle = '(m / s)'
-  export let datasets: ChartDataset<'scatter'>[] = [
+  export let subtitle = ''
+  export let yAxisLabel = 'Heave (m)'
+  export let ySuggestedMin = 0
+  export let ySuggestedMax = 1
+
+  export let datasets: ChartDataset<'line'>[] = [
     {
       label: 'Dataset 1',
       data: [
@@ -21,7 +26,6 @@
           y: 0.5
         }
       ],
-      showLine: true,
       borderColor: '#C01633'
     },
     {
@@ -44,10 +48,13 @@
     }
   ]
 
-  const datasetDefaults: Partial<ChartDataset<'scatter'>> = {
-    showLine: true,
+  // added some defaults as per:
+  // https://www.chartjs.org/docs/latest/general/performance.html
+  const datasetDefaults: Partial<ChartDataset<'line'>> = {
     borderCapStyle: 'round',
-    pointRadius: 0
+    showLine: true,
+    pointRadius: 0,
+    spanGaps: true
   }
 
   $: chartjsDatasets = datasets.map((dataset) => ({
@@ -58,15 +65,45 @@
   Chart.register(...registerables)
 
   let canvas: HTMLCanvasElement | undefined
-  $: ctx = canvas?.getContext('2d')
-  $: if (ctx) {
-    new Chart(ctx, {
+
+  onMount(() => {
+    const ctx = canvas!.getContext('2d')!
+    const chart = new Chart(ctx, {
       type: 'scatter',
       data: {
         datasets: chartjsDatasets
       },
       options: {
         responsive: true,
+        normalized: true,
+        animation: false,
+        parsing: false,
+        scales: {
+          x: {
+            type: 'linear',
+            title: {
+              display: true,
+              text: 'Time (s)'
+            },
+            min: -10,
+            max: 0,
+            ticks: {
+              minRotation: 0,
+              maxRotation: 0,
+              stepSize: 1,
+              sampleSize: 1
+            }
+          },
+          y: {
+            type: 'linear',
+            title: {
+              display: true,
+              text: yAxisLabel
+            },
+            min: ySuggestedMin,
+            max: ySuggestedMax
+          }
+        },
         plugins: {
           legend: {
             display: false
@@ -77,7 +114,14 @@
         }
       }
     })
-  }
+
+    let animationFrameRequest: number | undefined
+    function animate() {
+      animationFrameRequest = requestAnimationFrame(animate)
+      chart.update()
+    }
+    animate()
+  })
 </script>
 
 <Section>

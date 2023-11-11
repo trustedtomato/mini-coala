@@ -10,14 +10,95 @@
   import Graph from '$lib/components/sections/graph.svelte'
   import AauLogo from '$lib/components/aau-logo.svelte'
   import Section from '$lib/components/sections/section.svelte'
+  import type { ChartDataset } from 'chart.js'
 
   const log = debug('app:main')
 
   // state
-  let targetHeave = -0.2
   let heave = -0.2
+  let targetHeave = -0.2
   const minHeave = -10
   const maxHeave = 0
+  let pitch = 0
+  let targetPitch = 0
+  const minPitch = -Math.PI / 2
+  const maxPitch = Math.PI / 2
+  let yaw = 0
+  let targetYaw = 0
+  const minYaw = -Math.PI / 2
+  const maxYaw = Math.PI / 2
+  let targetSurgeVelocity = 0
+  let thrusterStrengths = Array.from({ length: 10 }, () => 0)
+
+  type Dataset = {
+    x: number
+    y: number
+    time: number
+  }[]
+
+  const heaveHistory: Dataset = Array.from({ length: 100 }, () => ({
+    x: 0,
+    y: 0,
+    time: 0
+  }))
+
+  const pitchHistory: Dataset = Array.from({ length: 100 }, () => ({
+    x: 0,
+    y: 0,
+    time: 0
+  }))
+
+  const yawHistory: Dataset = Array.from({ length: 100 }, () => ({
+    x: 0,
+    y: 0,
+    time: 0
+  }))
+
+  function pushToDataset(value: number, history: Dataset) {
+    const currentTime = performance.now()
+    // only push if the last push was more than 100ms ago
+    if (currentTime < history[history.length - 1].time + 50) {
+      return
+    }
+    history.push({
+      time: currentTime,
+      x: 0,
+      y: value
+    })
+    // normalize x values so that the current value is at 0 and the oldest value is at -10
+    for (let i = 0; i < history.length; i++) {
+      history[i].x = (normalizeNumber(history[i].time, currentTime - 10000, currentTime) - 1) * 10
+    }
+    while (history[0].x < -10) {
+      history.shift()
+    }
+  }
+
+  $: pushToDataset(heave, heaveHistory)
+  $: pushToDataset(pitch, pitchHistory)
+  $: pushToDataset(yaw, yawHistory)
+
+  const heaveDatasets: ChartDataset<'line'>[] = [
+    {
+      label: 'Heave',
+      data: heaveHistory,
+      borderColor: '#C01633'
+    }
+  ]
+  const pitchDatasets: ChartDataset<'line'>[] = [
+    {
+      label: 'Pitch',
+      data: pitchHistory,
+      borderColor: '#C01633'
+    }
+  ]
+  const yawDatasets: ChartDataset<'line'>[] = [
+    {
+      label: 'Yaw',
+      data: yawHistory,
+      borderColor: '#C01633'
+    }
+  ]
 
   // websocket connection
   let socket: WebSocket | null = null
@@ -41,12 +122,32 @@
   onMount(() => {
     initWebSocket()
     log('Init WebSocket')
+
+    // fake data change for testing
+    let animationFrameRequest: number
+    function loop() {
+      heave += 0.01
+      if (heave > maxHeave) {
+        heave = minHeave
+      }
+      pitch += 0.01
+      if (pitch > maxPitch) {
+        pitch = minPitch
+      }
+      yaw += 0.01
+      if (yaw > maxYaw) {
+        yaw = minYaw
+      }
+      thrusterStrengths = Array.from({ length: 10 }, () => Math.random())
+      animationFrameRequest = requestAnimationFrame(loop)
+    }
+    loop()
+    return () => {
+      cancelAnimationFrame(animationFrameRequest)
+    }
   })
 
   // handle joystick
-  $: normalizedHeave = 1 - normalizeNumber(heave, minHeave, maxHeave)
-  $: normalizedTargetHeave = 1 - normalizeNumber(targetHeave, minHeave, maxHeave)
-
   let gamepadIndex: number | null = null
   function loop(): void {
     const gamepad = gamepadIndex !== null ? navigator.getGamepads()[gamepadIndex] : null
@@ -87,8 +188,8 @@
 <div class="container">
   <div class="flex gap-8">
     <div class="basis-52 shrink-0 grow-0">
-      <Coala_3d header="Target pitch, yaw" />
-      <Coala_3d header="Measured pitch, yaw" />
+      <Coala_3d header="Target pitch, yaw" pitch={targetPitch} yaw={targetYaw} />
+      <Coala_3d header="Measured pitch, yaw" {pitch} {yaw} />
       <Section>
         <span slot="header">Connectivity</span>
         <div class="my-2">
@@ -116,16 +217,49 @@
       </Section>
     </div>
     <div class="basis-52 shrink-0 grow-0">
-      <Bars header="Heave: target, measured" barValues={[0.2, 0.5]} />
-      <Bars header="Pitch: target, measured" barValues={[0.2, 0.5]} />
-      <Bars header="Yaw: target, measured" barValues={[0.2, 0.5]} />
-      <Bars header="Target surge velocity" barValues={[0.2, 0.5]} />
-      <Bars header="Thruster strenghts" barValues={Array.from({ length: 10 }, (_, i) => i / 10)} />
+      <Bars
+        header="Heave: target, measured"
+        minValue={minHeave}
+        maxValue={maxHeave}
+        barValues={[targetHeave, heave]}
+      />
+      <Bars
+        header="Pitch: target, measured"
+        minValue={minPitch}
+        maxValue={maxPitch}
+        barValues={[targetPitch, pitch]}
+      />
+      <Bars
+        header="Yaw: target, measured"
+        minValue={minYaw}
+        maxValue={maxYaw}
+        barValues={[targetYaw, yaw]}
+      />
+      <Bars header="Target surge velocity" barValues={[targetSurgeVelocity]} />
+      <Bars header="Thruster strenghts" barValues={thrusterStrengths} />
     </div>
     <div class="basis-0 grow">
-      <Graph header="Heave history" />
-      <Graph header="Pitch history" />
-      <Graph header="Yaw history" />
+      <Graph
+        header="Heave history"
+        datasets={heaveDatasets}
+        ySuggestedMin={minHeave}
+        ySuggestedMax={maxHeave}
+        yAxisLabel="Heave (m)"
+      />
+      <Graph
+        header="Pitch history"
+        datasets={pitchDatasets}
+        ySuggestedMin={minPitch}
+        ySuggestedMax={maxPitch}
+        yAxisLabel="Pitch (rad)"
+      />
+      <Graph
+        header="Yaw history"
+        datasets={yawDatasets}
+        ySuggestedMin={minYaw}
+        ySuggestedMax={maxYaw}
+        yAxisLabel="Yaw (rad)"
+      />
     </div>
   </div>
 </div>
