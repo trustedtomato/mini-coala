@@ -1,14 +1,15 @@
 <script lang="ts">
   import '../app.css'
   import { processAxisValue } from '$lib/utils/process-axis-value'
-  import { normalizeNumber } from '$lib/utils/normalize-number'
+  import { minPitch, maxPitch, minRoll, maxRoll, minYaw, maxYaw } from '$lib/utils/get-rad'
   import { gamepadIndex } from '$lib/utils/get-gamepad'
+  import { last } from '$lib/utils/last'
   import debug from 'debug'
   import { onMount } from 'svelte'
   import SubcLogo from '$lib/components/subc-logo.svelte'
   import Coala_3d from '$lib/components/sections/coala-3d.svelte'
   import Bars from '$lib/components/sections/bars.svelte'
-  import Graph from '$lib/components/sections/graph.svelte'
+  import Graph from '$lib/components/sections/history-graph.svelte'
   import AauLogo from '$lib/components/aau-logo.svelte'
   import Section from '$lib/components/sections/section.svelte'
   import type { ChartDataset } from 'chart.js'
@@ -23,84 +24,14 @@
   const maxHeave = 0
   let pitch = 0
   let targetPitch = 0
-  const minPitch = -Math.PI
-  const maxPitch = Math.PI
+  let roll = 0
+  let targetRoll = 0
   let yaw = 0
   let targetYaw = 0
-  const minYaw = -Math.PI
-  const maxYaw = Math.PI
   let targetSurgeVelocity = 0
   let thrusterStrengths = Array.from({ length: 10 }, () => 0)
-
-  type Dataset = {
-    x: number
-    y: number
-    time: number
-  }[]
-
-  const heaveHistory: Dataset = Array.from({ length: 100 }, () => ({
-    x: 0,
-    y: 0,
-    time: 0
-  }))
-
-  const pitchHistory: Dataset = Array.from({ length: 100 }, () => ({
-    x: 0,
-    y: 0,
-    time: 0
-  }))
-
-  const yawHistory: Dataset = Array.from({ length: 100 }, () => ({
-    x: 0,
-    y: 0,
-    time: 0
-  }))
-
-  function pushToDataset(value: number, history: Dataset) {
-    const currentTime = performance.now()
-    // only push if the last push was more than 100ms ago
-    if (currentTime < history[history.length - 1].time + 50) {
-      return
-    }
-    history.push({
-      time: currentTime,
-      x: 0,
-      y: value
-    })
-    // normalize x values so that the current value is at 0 and the oldest value is at -10
-    for (let i = 0; i < history.length; i++) {
-      history[i].x = (normalizeNumber(history[i].time, currentTime - 10000, currentTime) - 1) * 10
-    }
-    while (history[0].x < -10) {
-      history.shift()
-    }
-  }
-
-  $: pushToDataset(heave, heaveHistory)
-  $: pushToDataset(pitch, pitchHistory)
-  $: pushToDataset(yaw, yawHistory)
-
-  const heaveDatasets: ChartDataset<'line'>[] = [
-    {
-      label: 'Heave',
-      data: heaveHistory,
-      borderColor: '#C01633'
-    }
-  ]
-  const pitchDatasets: ChartDataset<'line'>[] = [
-    {
-      label: 'Pitch',
-      data: pitchHistory,
-      borderColor: '#C01633'
-    }
-  ]
-  const yawDatasets: ChartDataset<'line'>[] = [
-    {
-      label: 'Yaw',
-      data: yawHistory,
-      borderColor: '#C01633'
-    }
-  ]
+  const minThrusterStrength = -1
+  const maxThrusterStrength = 1
 
   // websocket connection
   let socket: WebSocket | null = null
@@ -118,6 +49,20 @@
     }
     socket.onmessage = (e) => {
       log('WebSocket message', e.data)
+      const data = JSON.parse(e.data) as { type: string; data: any }
+      switch (data.type) {
+        case 'motor':
+          thrusterStrengths = data.data
+          break
+        case 'heave':
+          heave = data.data
+          break
+        case 'imu':
+          pitch = data.data.pitch
+          yaw = data.data.yaw
+          roll = data.data.roll
+          break
+      }
     }
   }
 
@@ -126,19 +71,14 @@
     log('Init WebSocket')
 
     // fake data change for testing
+    /*
     let animationFrameRequest: number
     function loop() {
-      heave += 0.01
-      if (heave > maxHeave) {
-        heave = minHeave
-      }
+      heave += (targetHeave - heave) * 0.1
+      yaw += (targetYaw - yaw) * 0.1
       pitch += 0.01
       if (pitch > maxPitch) {
         pitch = minPitch
-      }
-      yaw += 0.01
-      if (yaw > maxYaw) {
-        yaw = minYaw
       }
       thrusterStrengths = Array.from({ length: 10 }, () => Math.random())
       animationFrameRequest = requestAnimationFrame(loop)
@@ -147,6 +87,7 @@
     return () => {
       cancelAnimationFrame(animationFrameRequest)
     }
+    */
   })
 
   // handle joystick
@@ -261,6 +202,12 @@
         barValues={[targetPitch, pitch]}
       />
       <Bars
+        header="Roll: target, measured"
+        minValue={minRoll}
+        maxValue={maxRoll}
+        barValues={[targetRoll, roll]}
+      />
+      <Bars
         header="Yaw: target, measured"
         minValue={minYaw}
         maxValue={maxYaw}
@@ -272,28 +219,80 @@
         maxValue={1}
         barValues={[targetSurgeVelocity]}
       />
-      <Bars header="Thruster strenghts" barValues={thrusterStrengths} />
+      <Bars
+        header="Thruster strenghts"
+        minValue={minThrusterStrength}
+        maxValue={maxThrusterStrength}
+        barValues={thrusterStrengths}
+      />
     </div>
     <div class="basis-0 grow">
       <Graph
         header="Heave history"
-        datasets={heaveDatasets}
-        ySuggestedMin={minHeave}
-        ySuggestedMax={maxHeave}
+        datasetConfigs={[
+          {
+            label: 'Target',
+            borderColor: '#C01633'
+          },
+          {
+            label: 'Measured',
+            borderColor: '#7784F7'
+          }
+        ]}
+        currentValues={[targetHeave, heave]}
+        yMin={minHeave}
+        yMax={maxHeave}
         yAxisLabel="Heave (m)"
       />
       <Graph
         header="Pitch history"
-        datasets={pitchDatasets}
-        ySuggestedMin={minPitch}
-        ySuggestedMax={maxPitch}
+        datasetConfigs={[
+          {
+            label: 'Target',
+            borderColor: '#C01633'
+          },
+          {
+            label: 'Measured',
+            borderColor: '#7784F7'
+          }
+        ]}
+        currentValues={[targetPitch, pitch]}
+        yMin={minPitch}
+        yMax={maxPitch}
+        yAxisLabel="Pitch (rad)"
+      />
+      <Graph
+        header="Roll history"
+        datasetConfigs={[
+          {
+            label: 'Target',
+            borderColor: '#C01633'
+          },
+          {
+            label: 'Measured',
+            borderColor: '#7784F7'
+          }
+        ]}
+        currentValues={[targetRoll, roll]}
+        yMin={minRoll}
+        yMax={maxRoll}
         yAxisLabel="Pitch (rad)"
       />
       <Graph
         header="Yaw history"
-        datasets={yawDatasets}
-        ySuggestedMin={minYaw}
-        ySuggestedMax={maxYaw}
+        datasetConfigs={[
+          {
+            label: 'Target',
+            borderColor: '#C01633'
+          },
+          {
+            label: 'Measured',
+            borderColor: '#7784F7'
+          }
+        ]}
+        currentValues={[targetYaw, yaw]}
+        yMin={minYaw}
+        yMax={maxYaw}
         yAxisLabel="Yaw (rad)"
       />
     </div>

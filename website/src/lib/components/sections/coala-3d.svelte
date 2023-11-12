@@ -6,6 +6,7 @@
   import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module'
   import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
   import debug from 'debug'
+  import { getRad, pitchOffset, rollOffset, yawOffset } from '$lib/utils/get-rad'
 
   const loader = new GLTFLoader()
   loader.setMeshoptDecoder(MeshoptDecoder)
@@ -108,18 +109,20 @@
 
     // --- animate ---
 
+    let animationFrameRequest: number
     function animate() {
-      requestAnimationFrame(animate)
+      animationFrameRequest = requestAnimationFrame(animate)
       if (group) {
-        group.rotation.y = roll
-        group.rotation.x = pitch + Math.PI / 2
-        group.rotation.z = yaw - Math.PI / 2
+        group.rotation.x = getRad(pitch) + pitchOffset
+        group.rotation.y = getRad(roll) + rollOffset
+        group.rotation.z = getRad(yaw) + yawOffset
       }
       renderer.render(scene, camera)
     }
     animate()
 
     return () => {
+      cancelAnimationFrame(animationFrameRequest)
       window.removeEventListener('resize', onResize)
     }
   })

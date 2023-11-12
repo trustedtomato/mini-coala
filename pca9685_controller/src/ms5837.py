@@ -47,15 +47,9 @@ class MS5837(object):
     _MS5837_CONVERT_D1_256   = 0x40
     _MS5837_CONVERT_D2_256   = 0x50
     
-    def __init__(self, model=MODEL_30BA, bus=1):
+    def __init__(self, model, bus):
         self._model = model
-        
-        try:
-            self._bus = smbus.SMBus(bus)
-        except:
-            print("Bus %d is not available."%bus)
-            print("Available busses are listed as /dev/i2c*")
-            self._bus = None
+        self._bus = bus
         
         self._fluidDensity = DENSITY_FRESHWATER
         self._pressure = 0
@@ -67,7 +61,7 @@ class MS5837(object):
         if self._bus is None:
             "No bus!"
             return False
-        
+        print(self._bus)
         self._bus.write_byte(self._MS5837_ADDR, self._MS5837_RESET)
         
         # Wait for reset to complete
@@ -224,7 +218,7 @@ class MS5837(object):
         return n_rem ^ 0x00
     
 class MS5837_30BA(MS5837):
-    def __init__(self, bus=1):
+    def __init__(self, bus):
         MS5837.__init__(self, MODEL_30BA, bus)
         
 class MS5837_02BA(MS5837):

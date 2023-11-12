@@ -2,64 +2,37 @@
   import { Chart, registerables, type ChartDataset } from 'chart.js'
   import Section from './section.svelte'
   import { onMount } from 'svelte'
+  import { last } from '$lib/utils/last'
+  import { normalizeNumber } from '$lib/utils/normalize-number'
+  import { zipTwo } from '$lib/utils/zip-two'
 
   export let header = 'Chart'
   export let subtitle = ''
   export let yAxisLabel = 'Heave (m)'
-  export let ySuggestedMin = 0
-  export let ySuggestedMax = 1
+  export let yMin = 0
+  export let yMax = 1
 
-  export let datasets: ChartDataset<'line'>[] = [
-    {
-      label: 'Dataset 1',
-      data: [
-        {
-          x: 0,
-          y: 0.5
-        },
-        {
-          x: 0.5,
-          y: 0.75
-        },
-        {
-          x: 1,
-          y: 0.5
-        }
-      ],
-      borderColor: '#C01633'
-    },
-    {
-      label: 'Dataset 2',
-      borderColor: '#7784F7',
-      data: [
-        {
-          x: 0,
-          y: 0.5
-        },
-        {
-          x: 0.5,
-          y: 0.5
-        },
-        {
-          x: 1,
-          y: 0.25
-        }
-      ]
-    }
-  ]
+  export let datasetConfigs: {
+    label: string
+    borderColor: string
+  }[] = []
+
+  export let currentValues = [] as number[]
 
   // added some defaults as per:
   // https://www.chartjs.org/docs/latest/general/performance.html
   const datasetDefaults: Partial<ChartDataset<'line'>> = {
     borderCapStyle: 'round',
+    borderJoinStyle: 'round',
     showLine: true,
     pointRadius: 0,
     spanGaps: true
   }
 
-  $: chartjsDatasets = datasets.map((dataset) => ({
+  const datasets = datasetConfigs.map((dataset) => ({
     ...datasetDefaults,
-    ...dataset
+    ...dataset,
+    data: [] as { time: number; x: number; y: number }[]
   }))
 
   Chart.register(...registerables)
@@ -69,9 +42,9 @@
   onMount(() => {
     const ctx = canvas!.getContext('2d')!
     const chart = new Chart(ctx, {
-      type: 'scatter',
+      type: 'line',
       data: {
-        datasets: chartjsDatasets
+        datasets
       },
       options: {
         responsive: true,
@@ -100,8 +73,8 @@
               display: true,
               text: yAxisLabel
             },
-            min: ySuggestedMin,
-            max: ySuggestedMax
+            min: yMin,
+            max: yMax
           }
         },
         plugins: {
@@ -118,9 +91,31 @@
     let animationFrameRequest: number | undefined
     function animate() {
       animationFrameRequest = requestAnimationFrame(animate)
+      const currentTime = performance.now()
+      // only push if the last push was more than 100ms ago
+
+      for (const [dataset, currentValue] of zipTwo(datasets, currentValues)) {
+        dataset.data.push({
+          time: currentTime,
+          x: 0,
+          y: currentValue
+        })
+        // normalize x values so that the current value is at 0 and the oldest value is at -10
+        for (let i = 0; i < dataset.data.length; i++) {
+          dataset.data[i].x =
+            (normalizeNumber(dataset.data[i].time, currentTime - 10000, currentTime) - 1) * 10
+        }
+        // remove values older than 10 seconds
+        while (dataset.data[0].x < -10) {
+          dataset.data.shift()
+        }
+      }
       chart.update()
     }
     animate()
+    return () => {
+      cancelAnimationFrame(animationFrameRequest!)
+    }
   })
 </script>
 
