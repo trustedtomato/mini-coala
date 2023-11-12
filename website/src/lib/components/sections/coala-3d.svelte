@@ -111,9 +111,9 @@
     function animate() {
       requestAnimationFrame(animate)
       if (group) {
-        group.rotation.y = yaw
+        group.rotation.y = roll
         group.rotation.x = pitch + Math.PI / 2
-        group.rotation.z = roll - Math.PI / 2
+        group.rotation.z = yaw - Math.PI / 2
       }
       renderer.render(scene, camera)
     }

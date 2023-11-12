@@ -4,7 +4,7 @@ from ms5837 import MS5837_30BA
 
 def main():
     rospy.init_node('ms5837_publisher', anonymous=True)
-    pub = rospy.Publisher('ms5837', Float32MultiArray, queue_size=1)
+    pub = rospy.Publisher('pressure_sensor', Float32MultiArray, queue_size=1)
     rate = rospy.Rate(0.2)
     ms5837 = MS5837_30BA()
     if not ms5837.init():

@@ -2,6 +2,7 @@
   import '../app.css'
   import { processAxisValue } from '$lib/utils/process-axis-value'
   import { normalizeNumber } from '$lib/utils/normalize-number'
+  import { gamepadIndex } from '$lib/utils/get-gamepad'
   import debug from 'debug'
   import { onMount } from 'svelte'
   import SubcLogo from '$lib/components/subc-logo.svelte'
@@ -11,6 +12,7 @@
   import AauLogo from '$lib/components/aau-logo.svelte'
   import Section from '$lib/components/sections/section.svelte'
   import type { ChartDataset } from 'chart.js'
+  import { limit } from '$lib/utils/limit'
 
   const log = debug('app:main')
 
@@ -21,12 +23,12 @@
   const maxHeave = 0
   let pitch = 0
   let targetPitch = 0
-  const minPitch = -Math.PI / 2
-  const maxPitch = Math.PI / 2
+  const minPitch = -Math.PI
+  const maxPitch = Math.PI
   let yaw = 0
   let targetYaw = 0
-  const minYaw = -Math.PI / 2
-  const maxYaw = Math.PI / 2
+  const minYaw = -Math.PI
+  const maxYaw = Math.PI
   let targetSurgeVelocity = 0
   let thrusterStrengths = Array.from({ length: 10 }, () => 0)
 
@@ -148,25 +150,54 @@
   })
 
   // handle joystick
-  let gamepadIndex: number | null = null
-  function loop(): void {
-    const gamepad = gamepadIndex !== null ? navigator.getGamepads()[gamepadIndex] : null
-    if (gamepad) {
-      const axes = gamepad.axes
-      targetHeave += -processAxisValue(axes[1]) / 10
-      targetHeave = Math.max(minHeave, Math.min(maxHeave, targetHeave))
-      socket?.send(JSON.stringify({ heave: targetHeave }))
+  function getGamepadState(gamepad: Gamepad) {
+    const axes = gamepad.axes
+    const nitro = !gamepad.buttons[7].pressed ? 0.1 : 1
+    const a = gamepad.buttons[0]
+    const b = gamepad.buttons[1]
+    const x = gamepad.buttons[2]
+    const y = gamepad.buttons[3]
+    const arrowY = gamepad.buttons[12].value - gamepad.buttons[13].value
+    return {
+      deltaTargetHeave: (arrowY * nitro) / (maxHeave - minHeave),
+      deltaTargetYaw: -(processAxisValue(axes[2]) * nitro) / (maxYaw - minYaw),
+      targetSurgeVelocity: -processAxisValue(axes[1]) * nitro
     }
-
-    requestAnimationFrame(loop)
   }
 
   onMount(() => {
-    window.addEventListener('gamepadconnected', (e) => {
-      console.log(e.gamepad)
-      gamepadIndex = e.gamepad.index
-    })
+    log('Mounted!', $gamepadIndex)
+
+    let animationFrameRequest: number | undefined
+    function loop(): void {
+      const gamepad = $gamepadIndex !== null ? navigator.getGamepads()[$gamepadIndex] : null
+      if (gamepad) {
+        const newState = getGamepadState(gamepad)
+
+        targetHeave += newState.deltaTargetHeave
+        targetHeave = limit(targetHeave, minHeave, maxHeave)
+        targetYaw += newState.deltaTargetYaw
+        // if target yaw is outside the range, rotate it back to the range
+        if (targetYaw < minYaw) {
+          targetYaw += Math.PI * 2
+        } else if (targetYaw > maxYaw) {
+          targetYaw -= Math.PI * 2
+        }
+        targetSurgeVelocity = newState.targetSurgeVelocity
+
+        try {
+          socket?.send(JSON.stringify({ targetHeave, targetYaw, targetSurgeVelocity }))
+        } catch (e) {
+          log('Error sending data to WebSocket', e)
+        }
+      }
+
+      animationFrameRequest = requestAnimationFrame(loop)
+    }
     loop()
+    return () => {
+      cancelAnimationFrame(animationFrameRequest!)
+    }
   })
 </script>
 
@@ -205,7 +236,7 @@
         </div>
         <div>
           Gamepad:
-          {#if gamepadIndex !== null}
+          {#if $gamepadIndex !== null}
             <span class="text-x-green">✓&nbsp;Connected</span>
           {:else}
             <span class="text-x-red">
@@ -235,7 +266,12 @@
         maxValue={maxYaw}
         barValues={[targetYaw, yaw]}
       />
-      <Bars header="Target surge velocity" barValues={[targetSurgeVelocity]} />
+      <Bars
+        header="Target surge velocity"
+        minValue={-1}
+        maxValue={1}
+        barValues={[targetSurgeVelocity]}
+      />
       <Bars header="Thruster strenghts" barValues={thrusterStrengths} />
     </div>
     <div class="basis-0 grow">
