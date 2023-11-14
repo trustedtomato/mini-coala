@@ -1,4 +1,4 @@
-#https://github.com/voidpp/PCA9685-driver/blob/master/pca9685_driver/device.py
+# https://github.com/voidpp/PCA9685-driver/blob/master/pca9685_driver/device.py
 
 import smbus2 as smbus
 import logging

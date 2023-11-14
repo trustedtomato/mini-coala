@@ -48,8 +48,9 @@ class ControllerNode:
         self.msg.data = data
         self.pub.publish(self.msg)
 
+controller_node = ControllerNode()
+
 def main():
-    controller_node = ControllerNode()
     rate = rospy.Rate(5)
     while not rospy.is_shutdown():
         # pwm_num = max(0x1000 * (i % 0x11) - 1, 0)
