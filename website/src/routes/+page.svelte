@@ -14,6 +14,7 @@
   import Section from '$lib/components/sections/section.svelte'
   import type { ChartDataset } from 'chart.js'
   import { limit } from '$lib/utils/limit'
+  import { zipTwo } from '$lib/utils/zip-two'
 
   const log = debug('app:main')
 
@@ -32,6 +33,25 @@
   let thrusterStrengths = Array.from({ length: 10 }, () => 0)
   const minThrusterStrength = -1
   const maxThrusterStrength = 1
+
+  const colors = [
+    '#C01633',
+    '#7784F7',
+    '#F7D778',
+    '#F778D1',
+    '#78F7D7',
+    '#78D7F7',
+    '#78F7B4',
+    '#F7B478',
+    '#F77878',
+    '#F77878'
+  ]
+  function zipLabelsWithBordercolors(labels: string[]): { borderColor: string; label: string }[] {
+    return Array.from(zipTwo(colors, labels), ([borderColor, label]) => ({
+      borderColor,
+      label
+    }))
+  }
 
   // websocket connection
   let socket: WebSocket | null = null
@@ -71,12 +91,11 @@
     log('Init WebSocket')
 
     // fake data change for testing
-    /*
     let animationFrameRequest: number
     function loop() {
       heave += (targetHeave - heave) * 0.1
       yaw += (targetYaw - yaw) * 0.1
-      pitch += 0.01
+      pitch += 1
       if (pitch > maxPitch) {
         pitch = minPitch
       }
@@ -87,7 +106,6 @@
     return () => {
       cancelAnimationFrame(animationFrameRequest)
     }
-    */
   })
 
   // handle joystick
@@ -229,16 +247,7 @@
     <div class="basis-0 grow">
       <Graph
         header="Heave history"
-        datasetConfigs={[
-          {
-            label: 'Target',
-            borderColor: '#C01633'
-          },
-          {
-            label: 'Measured',
-            borderColor: '#7784F7'
-          }
-        ]}
+        datasetConfigs={zipLabelsWithBordercolors(['Target', 'Measured'])}
         currentValues={[targetHeave, heave]}
         yMin={minHeave}
         yMax={maxHeave}
@@ -246,16 +255,7 @@
       />
       <Graph
         header="Pitch history"
-        datasetConfigs={[
-          {
-            label: 'Target',
-            borderColor: '#C01633'
-          },
-          {
-            label: 'Measured',
-            borderColor: '#7784F7'
-          }
-        ]}
+        datasetConfigs={zipLabelsWithBordercolors(['Target', 'Measured'])}
         currentValues={[targetPitch, pitch]}
         yMin={minPitch}
         yMax={maxPitch}
@@ -263,16 +263,7 @@
       />
       <Graph
         header="Roll history"
-        datasetConfigs={[
-          {
-            label: 'Target',
-            borderColor: '#C01633'
-          },
-          {
-            label: 'Measured',
-            borderColor: '#7784F7'
-          }
-        ]}
+        datasetConfigs={zipLabelsWithBordercolors(['Target', 'Measured'])}
         currentValues={[targetRoll, roll]}
         yMin={minRoll}
         yMax={maxRoll}
@@ -280,19 +271,23 @@
       />
       <Graph
         header="Yaw history"
-        datasetConfigs={[
-          {
-            label: 'Target',
-            borderColor: '#C01633'
-          },
-          {
-            label: 'Measured',
-            borderColor: '#7784F7'
-          }
-        ]}
+        datasetConfigs={zipLabelsWithBordercolors(['Target', 'Measured'])}
         currentValues={[targetYaw, yaw]}
         yMin={minYaw}
         yMax={maxYaw}
+        yAxisLabel="Yaw (rad)"
+      />
+      <Graph
+        header="Thruster history"
+        datasetConfigs={zipLabelsWithBordercolors(
+          Array.from({ length: 10 }, (_, i) => `${i + 1}`)
+        ).map((d) => ({
+          ...d,
+          hidden: true
+        }))}
+        currentValues={thrusterStrengths}
+        yMin={0}
+        yMax={1}
         yAxisLabel="Yaw (rad)"
       />
     </div>

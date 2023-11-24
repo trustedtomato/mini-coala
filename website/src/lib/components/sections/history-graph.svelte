@@ -26,6 +26,7 @@
     borderJoinStyle: 'round',
     showLine: true,
     pointRadius: 0,
+    borderWidth: 2,
     spanGaps: true
   }
 
@@ -92,7 +93,6 @@
     function animate() {
       animationFrameRequest = requestAnimationFrame(animate)
       const currentTime = performance.now()
-      // only push if the last push was more than 100ms ago
 
       for (const [dataset, currentValue] of zipTwo(datasets, currentValues)) {
         dataset.data.push({
@@ -120,17 +120,20 @@
 </script>
 
 <Section>
-  <div slot="header" class="flex items-baseline">
+  <div slot="header" class="flex gap-4 items-baseline">
     <div>
       {header}
       <span class="text-gray-500 text-sm font-normal">{subtitle}</span>
     </div>
-    <div class="ml-auto flex text-sm gap-4 font-normal">
+    <div class="ml-auto flex text-sm gap-4 font-normal flex-wrap">
       {#each datasets as dataset}
-        <div>
+        <button
+          on:click={() => (dataset.hidden = !dataset.hidden)}
+          class={dataset.hidden ? 'line-through' : ''}
+        >
           {dataset.label}
           <span style="color: {dataset.borderColor}"> ● </span>
-        </div>
+        </button>
       {/each}
     </div>
   </div>
