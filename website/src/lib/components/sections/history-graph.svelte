@@ -49,6 +49,7 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         normalized: true,
         animation: false,
         parsing: false,
@@ -119,23 +120,27 @@
   })
 </script>
 
-<Section>
-  <div slot="header" class="flex gap-4 items-baseline">
-    <div>
-      {header}
-      <span class="text-gray-500 text-sm font-normal">{subtitle}</span>
+<div>
+  <Section>
+    <div slot="header" class="flex gap-4 items-baseline">
+      <div>
+        {header}
+        <span class="text-gray-500 text-sm font-normal">{subtitle}</span>
+      </div>
+      <div class="ml-auto flex text-sm gap-4 font-normal flex-wrap">
+        {#each datasets as dataset}
+          <button
+            on:click={() => (dataset.hidden = !dataset.hidden)}
+            class={dataset.hidden ? 'line-through' : ''}
+          >
+            {dataset.label}
+            <span style="color: {dataset.borderColor}"> ● </span>
+          </button>
+        {/each}
+      </div>
     </div>
-    <div class="ml-auto flex text-sm gap-4 font-normal flex-wrap">
-      {#each datasets as dataset}
-        <button
-          on:click={() => (dataset.hidden = !dataset.hidden)}
-          class={dataset.hidden ? 'line-through' : ''}
-        >
-          {dataset.label}
-          <span style="color: {dataset.borderColor}"> ● </span>
-        </button>
-      {/each}
+    <div class="relative h-56 w-full overflow-hidden">
+      <canvas bind:this={canvas} />
     </div>
-  </div>
-  <canvas bind:this={canvas} />
-</Section>
+  </Section>
+</div>

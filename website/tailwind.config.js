@@ -3,7 +3,9 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     screens: {
-      desktop: '1024px'
+      desktop: '1024px',
+      bigDesktop: '1440px',
+      veryBigDesktop: '1600px'
     },
     extend: {
       container: {

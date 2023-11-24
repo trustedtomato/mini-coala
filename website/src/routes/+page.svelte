@@ -246,7 +246,7 @@
         barValues={thrusterStrengths}
       />
     </div>
-    <div class="basis-0 grow">
+    <div class="basis-0 grow bigDesktop:grid bigDesktop:grid-cols-2 bigDesktop:gap-x-8 min-w-0">
       <Graph
         header="Heave history"
         datasetConfigs={zipLabelsWithBordercolors(['Target', 'Measured'])}
@@ -279,24 +279,26 @@
         yMax={maxYaw}
         yAxisLabel="Yaw (rad)"
       />
-      <Graph
-        header="Thruster history"
-        datasetConfigs={zipLabelsWithBordercolors(
-          Array.from({ length: 10 }, (_, i) => `${i + 1}`)
-        ).map((d) => ({
-          ...d,
-          hidden: true
-        }))}
-        currentValues={thrusterStrengths}
-        yMin={0}
-        yMax={1}
-        yAxisLabel="Yaw (rad)"
-      />
+      <div class="col-span-2">
+        <Graph
+          header="Thruster history"
+          datasetConfigs={zipLabelsWithBordercolors(
+            Array.from({ length: 10 }, (_, i) => `${i + 1}`)
+          ).map((d) => ({
+            ...d,
+            hidden: true
+          }))}
+          currentValues={thrusterStrengths}
+          yMin={minThrusterStrength}
+          yMax={maxThrusterStrength}
+          yAxisLabel="Yaw (rad)"
+        />
+      </div>
     </div>
   </div>
 </div>
 
-<footer class="bg-x-blue">
+<footer class="bg-x-blue mt-8">
   <div class="container">
     <div class="flex py-2 items-center gap-4 text-x-white font-medium">
       <div class="h-8 shrink-0 flex gap-4">
