@@ -91,6 +91,7 @@
     log('Init WebSocket')
 
     // fake data change for testing
+    /*
     let animationFrameRequest: number
     function loop() {
       heave += (targetHeave - heave) * 0.1
@@ -106,6 +107,7 @@
     return () => {
       cancelAnimationFrame(animationFrameRequest)
     }
+    */
   })
 
   // handle joystick
