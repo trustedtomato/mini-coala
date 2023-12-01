@@ -7,7 +7,7 @@ from ros_bno055.msg import OrientationEuler
 
 class ControllerNode:
     def __init__(self):
-        rospy.init_node('controller_node', anonymous=True)
+        rospy.init_node('controller_node', anonymous=True, disable_signals=True)
         self.pub = rospy.Publisher('motor_cmd', Float32MultiArray, queue_size=1)
         rospy.Subscriber('joystick_data', Float32MultiArray, self.joystick_callback)
         rospy.Subscriber('imu/orientation_euler', OrientationEuler, self.imu_callback)
@@ -53,7 +53,7 @@ heave_thruster_indices = [2, 3, 5, 7, 8, 9]
 def main():
     rate = rospy.Rate(20)
     thruster_indices = [1, 4]
-    while not rospy.is_shutdown():
+    while True:
         # pwm_num = max(0x1000 * (i % 0x11) - 1, 0)
         # rospy.loginfo('PWM: %s', pwm_num)
         
@@ -89,3 +89,4 @@ if __name__ == '__main__':
     finally:
         print("Stopping...")
         controller_node.stop()
+        rospy.signal_shutdown("Interrupted or finished") 
