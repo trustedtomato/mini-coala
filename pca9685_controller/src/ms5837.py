@@ -141,6 +141,9 @@ class MS5837(object):
     def depth(self):
         return (self.pressure(UNITS_Pa)-101300)/(self._fluidDensity*9.80665)
     
+    def relative_depth(self, initial_pressure):
+        return (self.pressure(UNITS_Pa) - initial_pressure)/(self._fluidDensity*9.80665)
+
     # Altitude relative to MSL pressure
     def altitude(self):
         return (1-pow((self.pressure()/1013.25),.190284))*145366.45*.3048        

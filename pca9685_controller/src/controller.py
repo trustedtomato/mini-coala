@@ -26,18 +26,18 @@ class ControllerNode:
         self.altitude = 0
 
     def joystick_callback(self, msg):
-        print(f'Joy: {msg}')
+        #print(f'Joy: {msg}')
         self.yaw_setpoint = msg.data[0]
         self.heave_setpoint = msg.data[1]
 
     def imu_callback(self, msg):
-        print(f'Imu: {msg}')
+        #print(f'Imu: {msg}')
         self.yaw = msg.heading
         self.roll = msg.roll
         self.pitch = msg.pitch
 
     def pressure_callback(self, msg):
-        print(f'Pressure: {msg}')
+        #print(f'Pressure: {msg}')
         self.heave = msg.data
 
     def stop(self):
@@ -49,16 +49,27 @@ class ControllerNode:
         self.pub.publish(self.msg)
 
 controller_node = ControllerNode()
-
+heave_thruster_indices = [2, 3, 5, 7, 8, 9] #, 2, 3, 8, 9, 5, 7]
+thruster_indices = [4, 5, 6, 7]
 def main():
-    rate = rospy.Rate(5)
+    rate = rospy.Rate(20)
     while not rospy.is_shutdown():
         # pwm_num = max(0x1000 * (i % 0x11) - 1, 0)
         # rospy.loginfo('PWM: %s', pwm_num)
-        pwm_data = [0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+        
+        pwm_data = [0 for i in range(16)]
         controller_node.set_pwm(pwm_data)
+        for i in range(10):
+            for j in heave_thruster_indices:
+                pwm_data[j] = (i+1)/10
+            input("Press Enter to continue...")
+            print(f'Thrust: {-(i+1)/10}')
+            controller_node.set_pwm(pwm_data)
+            
+
         # log
-        rospy.loginfo('Publishing: %s', pwm_data)
+        
         rate.sleep()
 
 

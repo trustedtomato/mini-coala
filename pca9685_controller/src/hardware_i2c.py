@@ -1,6 +1,6 @@
 from std_msgs.msg import Float32MultiArray, Float32
 import rospy
-from ms5837 import MS5837_30BA
+import ms5837
 from device import Device
 import time
 from adafruit_pca9685 import PCA9685
@@ -11,10 +11,31 @@ class MS5837Publisher:
     def __init__(self, bus):
         self.pub = rospy.Publisher('heave_data', Float32, queue_size=1)
         self.rate = rospy.Rate(10)
-        self.ms5837 = MS5837_30BA(bus)
-        if not self.ms5837.init():
-            rospy.logerr('Failed to initialize MS5837 sensor')
+        self.ms5837 = ms5837.MS5837_30BA(bus)
+
+        self.init()
+        self.initial_read()
+
+        self.initial_pressure = self.ms5837.pressure(ms5837.UNITS_Pa)
     
+    def init(self):
+        successful_init = False
+        while not successful_init:
+            try:
+                self.ms5837.init()
+                successful_init = True
+            except IOError:
+                rospy.logerr('I2C init error')
+
+    def initial_read(self):
+        successful_read = False
+        while not successful_read:
+            try:
+                self.ms5837.read()
+                successful_read = True
+            except IOError:
+                rospy.logerr('I2C read error')
+
     def run(self):
         while not rospy.is_shutdown():
             try:
@@ -24,12 +45,11 @@ class MS5837Publisher:
                 self.rate.sleep()
                 continue
             ms5837_data = Float32()
-            ms5837_data.data = -self.ms5837.depth()
+            ms5837_data.data = -self.ms5837.relative_depth(self.initial_pressure)
             self.pub.publish(ms5837_data)
             # log
             #rospy.loginfo('Publishing: %s', ms5837_data.data)
             self.rate.sleep()
-
 
 
 class PCA9685Subscriber:
@@ -46,8 +66,11 @@ class PCA9685Subscriber:
         self.pca.set_pwm_frequency(self.frequency)
 
         # arm the servos
-        self.set_all_zero()
-        time.sleep(7)
+        self.set_all_value(0.3)
+        time.sleep(0.5)
+        self.set_all_value(0)
+        time.sleep(5)
+        print("Armed")
 
         sub = rospy.Subscriber("motor_cmd", Float32MultiArray, self.callback)
 
@@ -59,17 +82,22 @@ class PCA9685Subscriber:
 
     def set_throttle(self, thruster_num, value):
         if not (-1.0 <= value <= 1.0):
-            raise ValueError("Must be 0.0 to 1.0")
+            raise ValueError("Must be -1.0 to 1.0")
         value = (value + 1) / 2
         duty_cycle = int(self._min_duty + value * self._duty_range)
-        self.pca.set_pwm(thruster_num, duty_cycle)
+        print(f'{thruster_num}: {duty_cycle}')
+        try:
+            self.pca.set_pwm(thruster_num, duty_cycle)
+        except IOError:
+            rospy.logerr('I2C write error')
+            return
 
     def spin (self):
         rospy.spin()
     
-    def set_all_zero (self):
+    def set_all_value(self, value):
         for i  in range(16):
-            self.set_throttle(i, 0)
+            self.set_throttle(i, value)
 
 def main():
     rospy.init_node('hardware_i2c', anonymous=True)
@@ -82,7 +110,7 @@ def main():
     except rospy.ROSInterruptException:
         pass
     finally:
-        pca9685_subscriber.set_all_zero()
+        pca9685_subscriber.set_all_value(0)
 
 
 

@@ -1,27 +1,21 @@
 import rospy
 import rosbag
-from std_msgs.msg import Float32MultiArray, Float32
-from sensor_msgs.msg import Imu
+from std_msgs.msg import Float32, Float32MultiArray
 from ros_bno055.msg import OrientationEuler
+import sys
+import datetime
 
-rospy.init_node('logger_node', anonymous=True)
-
-with rosbag.Bag('outbag.bag', 'w') as outbag:
-    def log_motor(msg):
-        outbag.write('motor_cmd', msg)
-    def log_heave(msg):
-        outbag.write('heave_data', msg)
-    def log_joystick(msg):
-        outbag.write('joystick', msg)
-    def log_imu(msg):
-        outbag.write('imu/data', msg)
-    def log_imu_euler(msg):
-        outbag.write('imu/orientation_euler', msg)
-
-    rospy.Subscriber("motor_cmd", Float32MultiArray, log_motor)
-    rospy.Subscriber("heave_data", Float32, log_heave)
-    rospy.Subscriber("joystick", Float32MultiArray, log_joystick)
-    rospy.Subscriber("imu/data", Imu, log_imu)
-    rospy.Subscriber("imu/orientation_euler", OrientationEuler, log_imu_euler)
-    rospy.spin()
-    
+def main():
+    time = datetime.datetime.now().strftime('%b-%d_%H:%M:%S')
+    if len(sys.argv) < 2:
+        print('Usage: python logger.py <file_name>')
+        return
+    file_name = sys.argv[1]
+    rospy.init_node('logger_node', anonymous=True)
+    with rosbag.Bag(f'{file_name}_{time}.bag', 'w') as bag:
+        rospy.Subscriber('heave_data', Float32, lambda msg: bag.write('heave_data', msg))
+        rospy.Subscriber('imu/orientation_euler', OrientationEuler, lambda msg: bag.write('imu/orientation_euler', msg))
+        rospy.Subscriber('motor_cmd', Float32MultiArray, lambda msg: bag.write('motor_cmd', msg))
+        rospy.spin()
+if __name__ == '__main__':
+    main()

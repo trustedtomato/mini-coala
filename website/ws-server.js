@@ -36,7 +36,9 @@ nh.subscribe('/heave_data', std_msgs.msg.Float32, (msg) => {
   webSocket?.send(JSON.stringify({ type: 'heave', data: msg.data }))
 })
 
-nh.subscribe('/imu/orientation_euler', rosbno055_msgs.msg.OrientationEuler, (msg) => {
+nh.subscribe('/imu/orientation_euler/calibrated', rosbno055_msgs.msg.OrientationEuler, (msg) => {
+  // inverse the roll and pitch
+
   rosnodejs.log.info(`Recieved ${(msg.heading, msg.pitch, msg.roll)}`)
   webSocket?.send(
     JSON.stringify({
