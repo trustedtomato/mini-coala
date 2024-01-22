@@ -22,6 +22,7 @@ webSocketServer.on('connection', (socket, request) => {
     joystickDataPublisher.publish(message)
   })
 
+  webSocket?.close()
   webSocket = socket
   socket.send('test from server')
 })
