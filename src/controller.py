@@ -56,17 +56,16 @@ def main():
     while not rospy.is_shutdown():
         # pwm_num = max(0x1000 * (i % 0x11) - 1, 0)
         # rospy.loginfo('PWM: %s', pwm_num)
-        
-        
+        # for i in range(10):
+        for j in range(10):
+            pwm_data = [0 for i in range(16)]
+            # pwm_data[j] = (i+1)/10
+            pwm_data[j] = 0.1
+            controller_node.set_pwm(pwm_data)            
+            input("Press Enter to continue...")
+        # print(f'Thrust: {-(i+1)/10}')
         pwm_data = [0 for i in range(16)]
         controller_node.set_pwm(pwm_data)
-        for i in range(10):
-            for j in heave_thruster_indices:
-                pwm_data[j] = (i+1)/10
-            input("Press Enter to continue...")
-            print(f'Thrust: {-(i+1)/10}')
-            controller_node.set_pwm(pwm_data)
-            
 
         # log
         

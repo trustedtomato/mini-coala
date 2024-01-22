@@ -4,6 +4,7 @@ from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import Vector3
 from ros_bno055.msg import OrientationEuler
+import time
 
 class ControllerNode:
     def __init__(self):
@@ -48,11 +49,13 @@ class ControllerNode:
         self.msg.data = data
         self.pub.publish(self.msg)
 
+
 controller_node = ControllerNode()
 heave_thruster_indices = [2, 3, 5, 7, 8, 9]
+thruster_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+thruster_coefficients = [1, 1, -1, -1, 1, -1, 1, 1, 1, 1]
 def main():
     rate = rospy.Rate(20)
-    thruster_indices = [1, 4]
     while True:
         # pwm_num = max(0x1000 * (i % 0x11) - 1, 0)
         # rospy.loginfo('PWM: %s', pwm_num)
@@ -60,21 +63,21 @@ def main():
         
         pwm_data = [0 for _ in range(16)]
         controller_node.set_pwm(pwm_data)
-        for i in range(16):
+        for i in thruster_indices:
             pwm_data = [0 for _ in range(16)]
-            pwm_data[i] = 0.2
-            input("Press Enter to continue...")
-            print(i)
-            controller_node.set_pwm(pwm_data)
+            # pwm_data[i] = 0.2
+            # input("Press Enter to continue...")
+            # print(i)
+            # controller_node.set_pwm(pwm_data)
             print(f'Pin: {i}')
-            # for j in range(10):
-            #     pwm_data[i] = (j+1)/10
-            #     input("Press Enter to continue...")
-            #     print(f'PWM: {(j+1)/10}')
-            #     controller_node.set_pwm(pwm_data)
-
+            for j in range(10):
+                pwm_data = [j/10 * thruster_coefficients[i] for _ in range(16)]
+                # pwm_data[i] = j/10 * thruster_coefficients[i]
+                input("Press Enter to continue...")
+                print(f'PWM: {j/10}')
+                controller_node.set_pwm(pwm_data)
+                # input("Press Enter to continue...")
             
-
         # log
         
         rate.sleep()
