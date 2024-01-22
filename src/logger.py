@@ -1,3 +1,5 @@
+# Grabs a bunch of data from the mini COALA and saves it to a bag file.
+
 import rospy
 import rosbag
 from std_msgs.msg import Float32, Float32MultiArray

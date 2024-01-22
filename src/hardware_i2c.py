@@ -1,7 +1,9 @@
+#! /usr/bin/env python3
+
 from std_msgs.msg import Float32MultiArray, Float32
 import rospy
 import ms5837
-from device import Device
+from pca9685 import Device
 import time
 from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo

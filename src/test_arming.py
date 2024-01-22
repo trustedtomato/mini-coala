@@ -1,4 +1,7 @@
 #! /usr/bin/env python3
+
+# This file is useful for testing the arming and running of the thrusters.
+
 import rospy
 import time
 from std_msgs.msg import Float32MultiArray

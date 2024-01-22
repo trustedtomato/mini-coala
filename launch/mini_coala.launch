@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
     <include file="$(find ros_bno055)/launch/bno055_imu.launch"/>
-    <node name="hardware_i2c_node" pkg="mini_coala_base" type="hardware_i2c.py" output="screen"/>  
+    <node name="hardware_i2c_node" pkg="mini_coala_base" type="hardware_i2c.py" output="screen"/>
+    <node name="imu_wrapper_node" pkg="mini_coala_base" type="imu_wrapper_node.py" output="screen"/>  
 </launch>

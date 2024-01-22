@@ -1,3 +1,5 @@
+# This file subscribes to the raw IMU data, and corrects for the bias
+
 import rospy
 import time
 from ros_bno055.msg import OrientationEuler

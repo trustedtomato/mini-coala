@@ -20,10 +20,7 @@ class ControllerNode:
         self.yaw = Float64()
         self.roll = Float64()
         self.pitch = Float64()
-        self.pressure = 0
-        self.temperature = 0
         self.heave = 0
-        self.altitude = 0
 
     def joystick_callback(self, msg):
         #print(f'Joy: {msg}')
@@ -70,7 +67,6 @@ def main():
         # log
         
         rate.sleep()
-
 
 
 if __name__ == '__main__':

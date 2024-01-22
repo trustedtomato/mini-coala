@@ -1,3 +1,5 @@
+# This file is useful for testing the thrusters one by one, with different PWM values.
+
 import rospy
 from std_msgs.msg import Float32MultiArray, Float64, Float32
 from sensor_msgs.msg import Imu
