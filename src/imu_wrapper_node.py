@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 # This file subscribes to the raw IMU data, and corrects for the bias
 
 import rospy
@@ -13,7 +14,7 @@ class ImuWrapper:
         rospy.Subscriber('imu/orientation_euler', OrientationEuler, self.imu_callback)
         self.pub = rospy.Publisher('imu/orientation_euler/calibrated', OrientationEuler)
         self.rate = rospy.Rate(10)
-        self.bias_rotation_matrix = R.from_euler('xyz', [0.8125, -13.06, 45], degrees=True).as_matrix()
+        self.bias_rotation_matrix = R.from_euler('xyz', [0, 0, 28], degrees=True).as_matrix()
         self.yaw = Float64()
         self.roll = Float64()
         self.pitch = Float64()

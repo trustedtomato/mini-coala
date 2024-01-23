@@ -68,7 +68,7 @@ class PCA9685Subscriber:
         self.pca.set_pwm_frequency(self.frequency)
 
         # arm the servos
-        self.set_all_value(0.3)
+        self.set_all_value(0.2)
         time.sleep(0.5)
         self.set_all_value(0)
         time.sleep(5)
