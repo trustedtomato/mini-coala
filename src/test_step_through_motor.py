@@ -54,8 +54,22 @@ class ControllerNode:
 
 controller_node = ControllerNode()
 heave_thruster_indices = [2, 3, 5, 7, 8, 9]
+yaw_thruster_indices = [0, 1, 4, 6]
 thruster_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-thruster_coefficients = [1, 1, -1, -1, 1, -1, 1, 1, 1, 1]
+heave_thrusters = [{'idx': 2, 'down': -0.62, 'up': 0.90},
+                   {'idx': 3, 'down': -0.61, 'up': 0.65},
+                   {'idx': 5, 'down': -0.85 * 0.72, 'up': 0.72},
+                   {'idx': 7, 'down': 0.67 * 0.72, 'up': -0.93},
+                   {'idx': 8, 'down': 0.5 * 0.72, 'up': -0.72},
+                   {'idx': 9, 'down': 0.69 * 0.72, 'up': -1}]
+
+yaw_thrusters = [{'idx': 0, 'forward': 0.8, 'backward': -0.5},#'forward': 0.67
+                 {'idx': 1, 'forward': -0.93, 'backward': 0.33},#'forward': -0.9
+                 {'idx': 4, 'forward': -0.82, 'backward': 0.43},#'forward': -1,
+                 {'idx': 6, 'forward': -1, 'backward': 0.4}]#'forward': -0.9
+
+forward_thruster_coefficients = [0.67, -0.9, -0.95, -1, -1, -0.85, -0.9, 0.67, 0.50, 0.69]
+backward_thruster_coefficients = [0.95, -1, -1, -0.71, -1, -0.86, -1, 1, 0.77, 0.95]
 def main():
     rate = rospy.Rate(20)
     while True:
@@ -65,19 +79,20 @@ def main():
         
         pwm_data = [0 for _ in range(16)]
         controller_node.set_pwm(pwm_data)
-        for i in thruster_indices:
+        for thruster in heave_thrusters:
             pwm_data = [0 for _ in range(16)]
             # pwm_data[i] = 0.2
             # input("Press Enter to continue...")
             # print(i)
             # controller_node.set_pwm(pwm_data)
-            print(f'Pin: {i}')
-            for j in range(10):
-                pwm_data = [j/10 * thruster_coefficients[i] for _ in range(16)]
-                # pwm_data[i] = j/10 * thruster_coefficients[i]
-                input("Press Enter to continue...")
-                print(f'PWM: {j/10}')
+            print(f'Pin: {thruster["idx"]}')
+            for j in range(9):
+                # pwm_data = [j/10 * thruster_coefficients[i] for _ in range(16)]
+                pwm_data[thruster['idx']] = j * 0.05 * thruster['down']
+                # input("Press Enter to continue...")
+                print(f'PWM: {j * 0.05 * thruster["down"]}')
                 controller_node.set_pwm(pwm_data)
+                time.sleep(5)
                 # input("Press Enter to continue...")
             
         # log
