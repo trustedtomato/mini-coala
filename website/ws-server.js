@@ -2,7 +2,6 @@ import rosnodejs from 'rosnodejs'
 const std_msgs = rosnodejs.require('std_msgs')
 const sensor_msgs = rosnodejs.require('sensor_msgs')
 const rosbno055_msgs = rosnodejs.require('ros_bno055')
-const geometry_msgs = rosnodejs.require('geometry_msgs')
 import { WebSocketServer } from 'ws'
 
 await rosnodejs.initNode('/my_node', { rosMasterUri: 'http://raspberrypi:11311' })
@@ -44,7 +43,7 @@ nh.subscribe('/imu/orientation_euler/calibrated', rosbno055_msgs.msg.Orientation
   rosnodejs.log.info(`Recieved ${(msg.heading, msg.pitch, msg.roll)}`)
   webSocket?.send(
     JSON.stringify({
-      type: 'imu_euler',
+      type: 'imu',
       data: {
         yaw: msg.heading,
         pitch: msg.pitch,
@@ -52,9 +51,4 @@ nh.subscribe('/imu/orientation_euler/calibrated', rosbno055_msgs.msg.Orientation
       }
     })
   )
-})
-
-nh.subscribe('/imu/orientation_quat/calibrated', geometry_msgs.msg.Quaternion, (msg) => {
-  rosnodejs.log.info(`Recieved ${msg}`)
-  webSocket?.send(JSON.stringify({ type: 'imu_quaternion', data: msg }))
 })

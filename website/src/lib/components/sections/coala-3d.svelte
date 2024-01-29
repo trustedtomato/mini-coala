@@ -14,9 +14,13 @@
   const log = debug('app:coala-3d')
 
   export let header = 'Coala 3D'
-  /** The rotation as a quaternion of the COALA. Updated on requestAnimationFrame. */
-  export let quat = new THREE.Quaternion(0, 0, 0, 1)
-1
+  /** The pitch of the COALA in radians. Updated on requestAnimationFrame. */
+  export let pitch = 0
+  /** The roll of the COALA in radians. Updated on requestAnimationFrame. */
+  export let roll = 0
+  /** The yaw of the COALA in radians. Updated on requestAnimationFrame. */
+  export let yaw = 0
+
   let container: HTMLElement
 
   onMount(() => {
@@ -109,10 +113,9 @@
     function animate() {
       animationFrameRequest = requestAnimationFrame(animate)
       if (group) {
-        group.rotation.setFromQuaternion(quat)
-        // group.rotation.x = getRad(pitch) + pitchOffset
-        // group.rotation.y = getRad(roll) + rollOffset
-        // group.rotation.z = getRad(yaw) + yawOffset
+        group.rotation.x = getRad(pitch) + pitchOffset
+        group.rotation.y = getRad(roll) + rollOffset
+        group.rotation.z = getRad(yaw) + yawOffset
       }
       renderer.render(scene, camera)
     }
