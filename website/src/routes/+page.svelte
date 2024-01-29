@@ -69,6 +69,7 @@
     }
     socket.onmessage = (e) => {
       log('WebSocket message', e.data)
+      // console.log(e.data)
       const data = JSON.parse(e.data) as { type: string; data: any }
       switch (data.type) {
         case 'motor':
@@ -158,6 +159,12 @@
     loop()
     return () => {
       cancelAnimationFrame(animationFrameRequest!)
+      if (socket) {
+        socket.onopen = null
+        socket.onclose = null
+        socket.onmessage = null
+        socket.close()
+      }
     }
   })
 </script>
@@ -180,8 +187,8 @@
 <div class="container">
   <div class="flex gap-8">
     <div class="basis-52 shrink-0 grow-0">
-      <Coala_3d header="Target pitch, yaw" pitch={targetPitch} yaw={targetYaw} />
-      <Coala_3d header="Measured pitch, yaw" {pitch} {yaw} />
+      <Coala_3d header="Target orientation" pitch={targetPitch} yaw={targetYaw} roll={targetRoll} />
+      <Coala_3d header="Measured orientation" {pitch} {yaw} {roll} />
       <Section>
         <span slot="header">Connectivity</span>
         <div class="my-2">

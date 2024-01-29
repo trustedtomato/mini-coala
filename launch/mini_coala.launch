@@ -2,5 +2,7 @@
 <launch>
     <include file="$(find ros_bno055)/launch/bno055_imu.launch"/>
     <node name="hardware_i2c_node" pkg="mini_coala_base" type="hardware_i2c.py" output="screen"/>
-    <node name="imu_wrapper_node" pkg="mini_coala_base" type="imu_wrapper_node.py" output="screen"/>  
+    <node name="imu_wrapper_node" pkg="mini_coala_base" type="imu_wrapper_node.py" output="screen"/>
+    <node name="websocket_node" pkg="mini_coala_base" type="ws-server.js" output="screen"/>
+    <node name="dev_server" pkg="mini_coala_base" type="dev-server.sh" output="screen"/>
 </launch>

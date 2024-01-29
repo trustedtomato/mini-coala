@@ -63,7 +63,7 @@ class PCA9685Subscriber:
         self._min_duty = int((min_pulse * self.frequency) / 1000000 * 0x0FFF)
         self._max_duty = int((max_pulse * self.frequency) / 1000000 * 0x0FFF)
         self._duty_range = self._max_duty - self._min_duty
-        print(f'min: {self._min_duty}, max: {self._max_duty}, range: {self._duty_range}')
+        # print(f'min: {self._min_duty}, max: {self._max_duty}, range: {self._duty_range}')
         self.pca = Device(bus, 0x40)
         self.pca.set_pwm_frequency(self.frequency)
 
@@ -72,13 +72,13 @@ class PCA9685Subscriber:
         time.sleep(0.5)
         self.set_all_value(0)
         time.sleep(5)
-        print("Armed")
+        rospy.loginfo("Armed")
 
         sub = rospy.Subscriber("motor_cmd", Float32MultiArray, self.callback)
 
     def callback(self, msg):
         data = msg.data
-        print(f'{msg}')
+        # print(f'{msg}')
         for i, datum in enumerate(data):
             self.set_throttle(i, datum)
 
@@ -87,7 +87,7 @@ class PCA9685Subscriber:
             raise ValueError("Must be -1.0 to 1.0")
         value = (value + 1) / 2
         duty_cycle = int(self._min_duty + value * self._duty_range)
-        print(f'{thruster_num}: {duty_cycle}')
+        # print(f'{thruster_num}: {duty_cycle}')
         try:
             self.pca.set_pwm(thruster_num, duty_cycle)
         except IOError:

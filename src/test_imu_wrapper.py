@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 # This file subscribes to the raw IMU data, and corrects for the bias
 
 import rospy
@@ -39,7 +39,7 @@ def main():
     while True:
         input('Press enter to set bias')
         imu.bias_rotation_matrix = R.from_euler('xyz', [1.3, -1, 28], degrees=True).as_matrix()
-        print(bias_yaw)
+        # print(bias_yaw)
         bias_yaw = (bias_yaw + 1) % 360
 
 

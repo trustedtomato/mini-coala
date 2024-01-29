@@ -28,7 +28,7 @@ class ImuWrapper:
         rotation_angles = R.from_matrix(self.bias_rotation_matrix @ rotation_matrix_from_reading).as_euler('zyx', degrees=True)
         new_msg = OrientationEuler()
         new_msg.header = msg.header
-        new_msg.heading = rotation_angles[0]+180
+        new_msg.heading = rotation_angles[0]
         new_msg.pitch = rotation_angles[1]
         new_msg.roll = rotation_angles[2]
         self.pub.publish(new_msg)

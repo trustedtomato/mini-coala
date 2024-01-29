@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import rosnodejs from 'rosnodejs'
 const std_msgs = rosnodejs.require('std_msgs')
 const sensor_msgs = rosnodejs.require('sensor_msgs')
@@ -15,7 +16,7 @@ const webSocketServer = new WebSocketServer({
 
 webSocketServer.on('connection', (socket, request) => {
   socket.on('message', (data, isBinary) => {
-    console.log(`Recieved ${data}`)
+    // console.log(`Recieved ${data}`)
     const message = new std_msgs.msg.Float32MultiArray({
       data: data
     })
@@ -24,23 +25,23 @@ webSocketServer.on('connection', (socket, request) => {
 
   webSocket?.close()
   webSocket = socket
-  socket.send('test from server')
+  // socket.send('test from server')
 })
 
 nh.subscribe('/motor_cmd', std_msgs.msg.Float32MultiArray, (msg) => {
-  rosnodejs.log.info(`Recieved ${msg.data}`)
+  // rosnodejs.log.info(`Recieved ${msg.data}`)
   webSocket?.send(JSON.stringify({ type: 'motor', data: msg.data }))
 })
 
 nh.subscribe('/heave_data', std_msgs.msg.Float32, (msg) => {
-  rosnodejs.log.info(`Recieved ${msg.data}`)
+  // rosnodejs.log.info(`Recieved ${msg.data}`)
   webSocket?.send(JSON.stringify({ type: 'heave', data: msg.data }))
 })
 
 nh.subscribe('/imu/orientation_euler/calibrated', rosbno055_msgs.msg.OrientationEuler, (msg) => {
   // inverse the roll and pitch
 
-  rosnodejs.log.info(`Recieved ${(msg.heading, msg.pitch, msg.roll)}`)
+  // rosnodejs.log.info(`Recieved ${(msg.heading, msg.pitch, msg.roll)}`)
   webSocket?.send(
     JSON.stringify({
       type: 'imu',

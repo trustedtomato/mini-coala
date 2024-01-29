@@ -17,7 +17,7 @@
   /** The pitch of the COALA in radians. Updated on requestAnimationFrame. */
   export let pitch = 0
   /** The roll of the COALA in radians. Updated on requestAnimationFrame. */
-  export let roll = 0
+  export let roll = 0 
   /** The yaw of the COALA in radians. Updated on requestAnimationFrame. */
   export let yaw = 0
 
@@ -113,9 +113,12 @@
     function animate() {
       animationFrameRequest = requestAnimationFrame(animate)
       if (group) {
-        group.rotation.x = getRad(pitch) + pitchOffset
-        group.rotation.y = getRad(roll) + rollOffset
-        group.rotation.z = getRad(yaw) + yawOffset
+        // console.log(roll, pitch, yaw)
+        group.rotation.set(getRad(roll), getRad(-pitch), getRad(yaw+180), 'ZYX')
+        group.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), getRad(pitchOffset))
+        // group.rotation.x = getRad(pitch) + pitchOffset
+        // group.rotation.y = getRad(roll) + rollOffset
+        // group.rotation.z = getRad(yaw) + yawOffset
       }
       renderer.render(scene, camera)
     }
