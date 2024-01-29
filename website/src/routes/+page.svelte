@@ -15,6 +15,7 @@
   import type { ChartDataset } from 'chart.js'
   import { limit } from '$lib/utils/limit'
   import { zipTwo } from '$lib/utils/zip-two'
+  import THREE from 'three'
 
   const log = debug('app:main')
 
@@ -29,6 +30,7 @@
   let targetRoll = 0
   let yaw = 0
   let targetYaw = 0
+  let quat = new THREE.Quaternion(0, 0, 0, 1)
   let targetSurgeVelocity = 0
   let thrusterStrengths = Array.from({ length: 10 }, () => 0)
   const minThrusterStrength = -1
@@ -69,18 +71,21 @@
     }
     socket.onmessage = (e) => {
       log('WebSocket message', e.data)
-      const data = JSON.parse(e.data) as { type: string; data: any }
-      switch (data.type) {
+      const msg = JSON.parse(e.data) as { type: string; data: any }
+      switch (msg.type) {
         case 'motor':
-          thrusterStrengths = data.data
+          thrusterStrengths = msg.data
           break
         case 'heave':
-          heave = data.data
+          heave = msg.data
           break
-        case 'imu':
-          pitch = data.data.pitch
-          yaw = data.data.yaw
-          roll = data.data.roll
+        case 'imu_euler':
+          pitch = msg.data.pitch
+          yaw = msg.data.yaw
+          roll = msg.data.roll
+          break
+        case 'imu_quaternion':
+          quat.set(msg.data.x, msg.data.y, msg.data.z, msg.data.w)
           break
       }
     }
@@ -180,8 +185,8 @@
 <div class="container">
   <div class="flex gap-8">
     <div class="basis-52 shrink-0 grow-0">
-      <Coala_3d header="Target pitch, yaw" pitch={targetPitch} yaw={targetYaw} />
-      <Coala_3d header="Measured pitch, yaw" {pitch} {yaw} />
+      <!-- <Coala_3d header="Target pitch, yaw" pitch={targetPitch} yaw={targetYaw} /> -->
+      <Coala_3d header="Measured pitch, yaw" {quat} />
       <Section>
         <span slot="header">Connectivity</span>
         <div class="my-2">
